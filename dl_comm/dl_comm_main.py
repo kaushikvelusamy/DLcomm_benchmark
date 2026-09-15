@@ -24,6 +24,17 @@
 import os
 import re
 import sys
+
+# Repair a bundled-OpenSSL / system-libssl symbol conflict before any library
+# that reaches the network is imported. On a Cray system, mpi4py loads
+# libfabric, which links the system libssl; if this interpreter bundles its own
+# libcrypto the two disagree and the import fails. The call re-execs the
+# process once with the system pair preloaded, and is a no-op everywhere the
+# symbols already agree. It has to happen before "from mpi4py import MPI".
+from dl_comm.utils.openssl_compat import repair_if_needed as _dl_comm_ssl_repair
+
+_dl_comm_ssl_repair()
+
 import json
 import time
 import signal
